@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Gym Progress Website{% endblock title %}</title>
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static 'core/base.css' %}">
+    </head>
+
+    <body>
+
+        <div id="navbar">
+            <ul>
+                <li ><a href="/"><b>MuscleMetrics</b></a></li>
+                <li style="float:right"><a href="/account">Account</a></li>
+                <li style="float:right"><a href="/analysis">Analysis</a></li>
+                <li style="float:right"><a href="/workouts">Workouts</a></li>
+                <li style="float:right"><a href="/workout-plans">Workout Plans</a></li>
+            </ul>
+        </div>
+
+        <div id="content">
+            {% block content %}
+            {% endblock content %}
+        </div>
+
+    </body>
+
+</html>
