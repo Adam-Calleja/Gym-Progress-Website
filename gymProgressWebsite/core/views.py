@@ -3,7 +3,6 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import GymUserCreationForm, LoginForm
 from django.views import View
-from django.http import HttpResponse 
 
 class Index(View):
     def get(self, request):
@@ -11,7 +10,13 @@ class Index(View):
 
 class Account(LoginRequiredMixin, View):
     def get(self, request):
-        return HttpResponse("Welcome, " + request.user.username)
+        user = request.user
+
+        context = {
+            user:user
+        }
+
+        return render(request, 'core/account.html', context)
 
 class Register(View):
     def post(self, request):
