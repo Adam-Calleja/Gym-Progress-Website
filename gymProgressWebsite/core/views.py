@@ -3,6 +3,8 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import GymUserCreationForm, LoginForm
 from django.views import View
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 class Index(View):
     def get(self, request):
@@ -26,8 +28,9 @@ class Register(View):
             user = form.save()
             auth_login(request, user)
             
-            return redirect('/')
-        return render(request, 'core/register.html', {'form': form})
+            return HttpResponseRedirect(reverse("core:index"))
+
+        return HttpResponseRedirect(reverse("core:register", args=({'form': form,})))
     
     def get(self, request):
         form = GymUserCreationForm()
@@ -42,13 +45,13 @@ class LogIn(View):
             user = form.get_user()
             auth_login(request, user)
             
-            return redirect('core/index.html')
+            return HttpResponseRedirect(reverse("core:index"))
         
-        return render(request, 'core/login.html', {'form': form})
+        return HttpResponseRedirect(reverse("core:login", args=({"form": form, })))
     
     def get(self, request):
         if request.user.is_authenticated:
-            return redirect('core/account.html')
+            return redirect('core:account')
         else: 
             form = LoginForm()
             return render(request, 'core/login.html', {'form': form})
