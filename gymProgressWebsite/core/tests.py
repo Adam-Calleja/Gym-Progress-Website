@@ -285,9 +285,36 @@ class GymUserManagerTests(TestCase):
         self.assertFalse(superuser_exists)
 
 
+class GymUserTests(TestCase):
+    def setUp(self):
+        """
+        Sets up the testing environment. 
+        """
+
+        self.gymUserManager = GymUser.objects 
+        
+    def test_str(self):
+        """
+        Tests that the string representation of a user is correct. 
+
+        The string representation of a user should be equal to the 
+        user's email. 
+        """
+
+        email = "test.email@email.com"
+
+        user = self.gymUserManager.create_user(
+            email = email,
+            username = "TestUser",
+            password = "ThisIsATest1234"
+        )
+
+        self.assertEqual(user.__str__(), email)
+
+
 class RegisterViewTests(TestCase):
     def setUp(self):
-        """,
+        """
         Sets up the testing environment.
         """
 
