@@ -7,6 +7,8 @@ class GymUserManager(BaseUserManager):
             raise ValueError('The Email field must be set.')
         elif not username:
             raise ValueError('The Username field must be set.')
+        elif not password:
+            raise ValueError('The Password field must be set.')
         
         email = self.normalize_email(email)
         user = self.model(email=email, username=username, **extra_fields)
@@ -14,11 +16,11 @@ class GymUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password=None, **extra_fields):
+    def create_superuser(self, email, username, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
-        return self.create_user(email, password, **extra_fields)
+        return self.create_user(email=email, username=username, password=password, **extra_fields)
 
 class GymUser(AbstractBaseUser):
     email = models.EmailField(unique=True)

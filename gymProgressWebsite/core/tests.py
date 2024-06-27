@@ -2,6 +2,7 @@ from django.test import TestCase, Client
 
 from .models import GymUserManager, GymUser
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
 
 class GymUserManagerTests(TestCase):
     def setUp(self):
@@ -160,11 +161,11 @@ class GymUserManagerTests(TestCase):
             password = "ThisIsATest1234"
         )
 
-        superuser_exists = GymUser.objects.filter(username='TestUser').exists()
+        superuser_exists = get_user_model().objects.filter(username='TestSuperUser', is_superuser=True).exists()
 
         self.assertTrue(superuser_exists)
 
-        superuser = GymUser.objects.get(username='TestUser')
+        superuser = GymUser.objects.get(username='TestSuperUser')
 
         self.assertEqual(superuser.email, 'test.email@email.com')
         self.assertTrue(superuser.check_password('ThisIsATest1234'))
@@ -187,7 +188,7 @@ class GymUserManagerTests(TestCase):
                 password = "ThisIsATest1234"
             )
 
-        superuser_exists = GymUser.objects.filter(username='TestUser').exists()
+        superuser_exists = GymUser.objects.filter(username='TestUser', is_superuser=True).exists()
 
         self.assertFalse(superuser_exists)  
 
@@ -206,7 +207,7 @@ class GymUserManagerTests(TestCase):
                 password = "ThisIsATest1234"
             )
 
-        superuser_exists = GymUser.objects.filter(username='').exists()
+        superuser_exists = GymUser.objects.filter(username='', is_superuser=True).exists()
 
         self.assertFalse(superuser_exists)
 
@@ -232,7 +233,7 @@ class GymUserManagerTests(TestCase):
         
         self.assertIn('Ensure this value has at most 150 characters', str(context.exception))
 
-        superuser_exists = GymUser.objects.filter(username='').exists()
+        superuser_exists = GymUser.objects.filter(username='', is_superuser=True).exists()
 
         self.assertFalse(superuser_exists)
 
@@ -252,7 +253,7 @@ class GymUserManagerTests(TestCase):
             password = "ThisIsATest1234"
         )
 
-        superuser_exists = GymUser.objects.filter(username=username).exists()
+        superuser_exists = GymUser.objects.filter(username=username, is_superuser=True).exists()
 
         self.assertTrue(superuser_exists)
 
@@ -261,8 +262,8 @@ class GymUserManagerTests(TestCase):
         self.assertEqual(superuser.email, 'test.email@email.com')
         self.assertTrue(superuser.check_password('ThisIsATest1234'))
         self.assertTrue(superuser.is_active)
-        self.assertFalse(superuser.is_staff)
-        self.assertFalse(superuser.is_superuser)
+        self.assertTrue(superuser.is_staff)
+        self.assertTrue(superuser.is_superuser)
 
     def test_create_superuser_no_password(self):
         """
@@ -273,20 +274,20 @@ class GymUserManagerTests(TestCase):
         """
 
         with self.assertRaises(ValueError):
-            self.gymUserManager.create_user(
+            self.gymUserManager.create_superuser(
                 email = "test.email@email.com",
                 username = "TestUser",
                 password = ""
             )
 
-        superuser_exists = GymUser.objects.filter(username='TestUser').exists()
+        superuser_exists = GymUser.objects.filter(username='TestUser', is_superuser=True).exists()
 
         self.assertFalse(superuser_exists)
 
 
 class RegisterViewTests(TestCase):
     def setUp(self):
-        """
+        """,
         Sets up the testing environment.
         """
 
