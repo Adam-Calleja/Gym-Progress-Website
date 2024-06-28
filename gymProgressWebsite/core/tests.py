@@ -3,6 +3,7 @@ from django.test import TestCase, Client
 from .models import GymUserManager, GymUser
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 
 class GymUserManagerTests(TestCase):
     def setUp(self):
@@ -292,7 +293,7 @@ class GymUserTests(TestCase):
         """
 
         self.gymUserManager = GymUser.objects 
-        
+
     def test_str(self):
         """
         Tests that the string representation of a user is correct. 
@@ -312,10 +313,52 @@ class GymUserTests(TestCase):
         self.assertEqual(user.__str__(), email)
 
 
-class RegisterViewTests(TestCase):
+class IndexViewTests(TestCase):
     def setUp(self):
         """
         Sets up the testing environment.
         """
 
         self.client = Client()
+
+    def test_index_get(self):
+        """
+        Tests that the index view works as expected under the HTTP GET operation.
+        """
+
+        response = self.client.get(reverse('core:index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'core/index.html')
+
+class AccountViewTests(TestCase):
+    def setUP(self):
+        """
+        Sets up the testing environment. 
+        """
+
+        self.client = Client()
+        self.user = GymUser.objects.create_user(
+            email="test@test.com",
+            username='testuser', 
+            password='testpassword')
+
+    def test_account_get_user_logged_in(self):
+        """
+        Tests that the account view works as expected under the HTTP GET operation when the user is logged in.
+        """
+
+        login_successful = self.client.login(email='test@test.com', password='testpassword')
+        self.assertTrue(login_successful, "User login failed")
+        
+        response = self.client.get(reverse('core:account')) 
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'core/account.html') 
+
+    def test_account_get_user_not_logged_in(self):
+        """
+        Tests that the account view works as expected under the HTTP GET operation when the user is not logged in. 
+        """
+
+        response = self.client.get(reverse('core:account'))
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, 'core:login')
