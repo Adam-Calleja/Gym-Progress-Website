@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
+from .forms import GymUserCreationForm
+
 class GymUserManagerTests(TestCase):
     def setUp(self):
         """
@@ -361,4 +363,195 @@ class AccountViewTests(TestCase):
 
         response = self.client.get(reverse('core:account'))
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, 'core:login')
+        self.assertRedirects(response, f"{reverse('core:login')}?next={reverse('core:account')}")
+
+class RegisterViewTests(TestCase):
+    def setUp(self):
+        """
+        Sets up the testing environment.
+        """
+
+        self.client = Client()
+
+    def test_register_post_valid_data_correct_redirect(self):
+        """
+        Tests that the register view correctly redirects the user to their account
+        under the HTTP POST operation given valid data is input into the form. 
+        """
+
+        data = {
+            'email': 'testuser@test.com',
+            'username':'testuser',
+            'password1':'testPassword123',
+            'password2':'testPassword123'
+        }
+
+        response = self.client.post(reverse('core:register'), data=data)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, 'core:account')
+
+    def test_register_post_valid_data_saves_user(self):
+        """
+        Tests that the register view correctly saves a user under the HTTP POST operation 
+        given valid data is input into the form. 
+        """
+
+        data = {
+            'email': 'testuser@test.com',
+            'username':'testuser',
+            'password1':'testPassword123',
+            'password2':'testPassword123'
+        }
+
+        response = self.client.post(reverse('core:register'), data=data)        
+        user_exists = GymUser.objects.filter(username='testuser').exists()
+        self.assertTrue(user_exists) 
+
+    def test_register_post_valid_data_logs_user_in(self):
+        """
+        Tests that the register view correctly logs the user in under the HTTP POST operation 
+        given valid data is input into the form. 
+        """
+
+        data = {
+            'email': 'testuser@test.com',
+            'username':'testuser',
+            'password1':'testPassword123',
+            'password2':'testPassword123'
+        }
+
+        response = self.client.post(reverse('core:register'), data=data)        
+        user = response.wsgi_request.user
+        self.assertTrue(user.is_authenticated) 
+
+    def test_register_post_no_email_correct_redirect(self):
+        """
+        Tests that the register view correctly redirects the user to the register view under the HTTP POST
+        operation given that the email field is empty.
+        """
+
+        data = {
+            'email': '',
+            'username':'testuser',
+            'password1':'testPassword123',
+            'password2':'testPassword123'
+        }
+
+        response = self.client.post(reverse('core:register'), data=data)  
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, 'core:register')
+
+    def test_register_post_no_email_user_not_saved(self):
+        """
+        Tests that the register view does not save the user under the HTTP POST
+        operation given that the email field is empty.
+        """
+
+        data = {
+            'email': '',
+            'username':'testuser',
+            'password1':'testPassword123',
+            'password2':'testPassword123'
+        }
+
+        response = self.client.post(reverse('core:register'), data=data)  
+        user_exists = GymUser.objects.filter(username="testuser").exists()
+        self.assertFalse(user_exists)
+
+    def test_register_post_no_username_correct_redirect(self):
+        """
+        Tests that the register view correctly redirects the user to the register view under the HTTP POST
+        operation given that the username field is empty.
+        """
+
+        data = {
+            'email': 'testuser@test.com',
+            'username':'',
+            'password1':'testPassword123',
+            'password2':'testPassword123'
+        }
+
+        response = self.client.post(reverse('core:register'), data=data)  
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, 'core:register')
+
+    def test_register_post_no_username_user_not_saved(self):
+        """
+        Tests that the register view does not save the user under the HTTP POST
+        operation given that the username field is empty.
+        """
+
+        data = {
+            'email': 'testuser@test.com',
+            'username':'',
+            'password1':'testPassword123',
+            'password2':'testPassword123'
+        }
+
+        response = self.client.post(reverse('core:register'), data=data)  
+        user_exists = GymUser.objects.filter(username="").exists()
+        self.assertFalse(user_exists)
+
+    def test_register_post_passwords_dont_match_correct_redirect(self):
+        """
+        Tests that the register view correctly redirects the user to the register view under the HTTP POST
+        operation given that the two password fields are not equal.
+        """
+
+        data = {
+            'email': 'testuser@test.com',
+            'username':'testuser',
+            'password1':'testPassword123',
+            'password2':'passwordTest123'
+        }
+
+        response = self.client.post(reverse('core:register'), data=data)  
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, 'core:register')
+
+    def test_register_post_passwords_dont_match_user_not_saved(self):
+        """
+        Tests that the register view does not save the user under the HTTP POST
+        operation given that the two password fields are not equal.
+        """
+
+        data = {
+            'email': 'testuser@test.com',
+            'username':'testuser',
+            'password1':'testPassword123',
+            'password2':'passwordTest123'
+        }
+
+        response = self.client.post(reverse('core:register'), data=data)  
+        user_exists = GymUser.objects.filter(username="testuser").exists()
+        self.assertFalse(user_exists)
+
+    def test_register_get_correct_status_code(self):
+        """
+        Tests that the register view returns the correct status code under the 
+        HTTP GET operation.
+        """
+
+        response = self.client.get(reverse('core:register'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_register_get_correct_template_used(self):
+        """
+        Tests that the correct template is used for the register view under the 
+        HTTP GET operation.
+        """
+
+        response = self.client.get(reverse('core:register'))
+        self.assertTemplateUsed(response, 'register.html')
+
+    def test_register_get_correct_form(self):
+        """
+        Tests thaat the correct form is used for the register view under the 
+        HTTP GET operation.
+        """
+
+        response = self.client.get(reverse('core:register'))
+        self.assertIsInstance(response.context['form'], GymUserCreationForm)
+
+
+    
